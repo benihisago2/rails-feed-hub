@@ -15,7 +15,7 @@ gem "turbo-rails"
 # Hotwire's modest JavaScript framework [https://stimulus.hotwired.dev]
 gem "stimulus-rails"
 # Background job processing backed by Redis [https://github.com/sidekiq/sidekiq]
-gem "sidekiq", "~> 7.3"
+gem "sidekiq", "~> 8.0"
 # Transitive dependency of Sidekiq, pinned deliberately. connection_pool 3.0
 # changed TimedStack#pop to take no arguments, which kills the Sidekiq 7
 # scheduler thread on boot with "wrong number of arguments (given 1, expected 0)".
