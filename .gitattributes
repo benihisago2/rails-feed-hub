@@ -1,0 +1,19 @@
+# Normalize line endings. The repository is authored on Windows but every command
+# runs inside a Linux container, so LF must win everywhere.
+* text=auto eol=lf
+
+# Executable scripts and shell files must never receive CRLF.
+bin/* text eol=lf
+*.sh text eol=lf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Keep generated files out of diffs and language statistics.
+db/schema.rb linguist-generated=true
+Gemfile.lock linguist-generated=true

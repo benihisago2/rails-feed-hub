@@ -1,0 +1,206 @@
+# PROJECT_SPEC — FeedHub (`rails-feed-hub`)
+
+**Every agent working on this repository must read this file first.**
+It is the single source of truth for versions, names and conventions. If a phase prompt and this
+file disagree on a name or a version, this file wins — report the conflict instead of guessing.
+
+This file is a working document for contributors. It is not part of the portfolio narrative.
+
+---
+
+## 1. What this repository is
+
+A portfolio repository for a Ruby on Rails contract application. The point is **not** the size of the
+application. The point is the visible development process: issues, pull requests, self-review, and
+design records. Keep the application small on purpose.
+
+FeedHub registers RSS/Atom feeds, fetches them on a schedule, stores articles, and supports bulk
+CSV import/export.
+
+---
+
+## 2. Pinned versions — do not change these
+
+| Item | Value |
+|---|---|
+| Ruby | `3.3.6` (`.ruby-version`, Docker base image `ruby:3.3.6-slim`) |
+| Rails | `~> 8.0.0` |
+| PostgreSQL | `16` (image `postgres:16-alpine`) |
+| Redis | `7` (image `redis:7-alpine`) |
+| Sidekiq | `~> 7.3` |
+| sidekiq-cron | `~> 1.12` |
+
+### Gemfile — the complete allowed list
+
+Do not add gems beyond this list. If a phase seems to need one, stop and report it.
+
+**Runtime**
+
+```
+rails ~> 8.0.0
+pg ~> 1.5
+puma >= 6.0
+propshaft
+importmap-rails
+turbo-rails
+stimulus-rails
+sidekiq ~> 7.3
+sidekiq-cron ~> 1.12
+kaminari ~> 1.2
+tzinfo-data (windows/jruby platforms only)
+bootsnap (require: false)
+```
+
+**:development, :test**
+
+```
+rspec-rails ~> 7.1
+factory_bot_rails ~> 6.4
+debug (require: false)
+```
+
+**:development**
+
+```
+web-console
+bullet ~> 7.2
+```
+
+**:test**
+
+```
+shoulda-matchers ~> 6.4
+webmock ~> 3.24
+simplecov ~> 0.22 (require: false)
+```
+
+**Lint / security (development, test)**
+
+```
+rubocop-rails-omakase (require: false)
+rubocop-rspec (require: false)
+brakeman (require: false)
+```
+
+`rubocop-rails-omakase` already pulls in `rubocop`, `rubocop-rails` and `rubocop-performance`; do not
+list them separately.
+
+**Not used, deliberately:** `solid_queue`, `solid_cache`, `solid_cable`, `kamal`, `jbuilder`,
+`devise`, `faraday`, `nokogiri` as a direct dependency, VCR, any CSS or JS framework.
+The app is generated with `--skip-solid --skip-kamal --skip-jbuilder --skip-test`.
+
+---
+
+## 3. Fixed names
+
+### Models (`app/models/`)
+
+`Feed`, `Article`, `Tag`, `ArticleTag`, `ImportJob`
+
+### Services (`app/services/`) — one public method `call` each
+
+| Class | File |
+|---|---|
+| `FeedFetcher` | `app/services/feed_fetcher.rb` |
+| `FeedCsvImporter` | `app/services/feed_csv_importer.rb` |
+| `ArticleCsvExporter` | `app/services/article_csv_exporter.rb` |
+| `FeedHttpClient` | `app/services/feed_http_client.rb` — **added in phase 8 (PR #5), not before** |
+
+### Jobs (`app/jobs/`)
+
+| Class | Queue | Argument |
+|---|---|---|
+| `FetchFeedJob` | `:feeds` | `feed_id` |
+| `ScheduleFeedFetchesJob` | `:default` | none |
+| `CsvImportJob` | `:imports` | `import_job_id` |
+
+Jobs take **IDs, not model instances** (serialization cost and stale data).
+
+### Controllers
+
+`FeedsController`, `ArticlesController`, `ImportJobsController`
+
+### Enums
+
+- `Feed#last_status`: `pending` / `ok` / `failed` — stored as **string**, default `pending`
+- `ImportJob#status`: `pending` / `running` / `completed` / `failed` — stored as **string**, default `pending`
+
+Strings, not integers: the database stays readable when someone inspects it with `psql` during an
+incident, and adding a value later cannot silently reorder existing rows.
+
+---
+
+## 4. Conventions
+
+- **Code comments, commit messages, UI strings, README body, Issues and PRs: English.**
+  The client is an English speaker.
+- **`docs/adr/*.md`: Japanese.** These are the most valuable files in the repository. Natural
+  Japanese technical prose, `です・ます` style, never translationese.
+- Commit messages follow Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `test:`, `docs:`).
+- No `default_scope` anywhere.
+- Do not swallow exceptions. Log and re-raise.
+- Service classes expose exactly one public method: `call`.
+- No N+1 queries. `bullet` raises in the test environment.
+- `app/assets/stylesheets/application.css` must stay **under 100 lines**.
+
+---
+
+## 5. Running commands
+
+There is no Ruby toolchain on the host. Everything runs in a container.
+
+```bash
+docker compose up -d
+docker compose exec web bin/rails db:migrate
+docker compose exec web bundle exec rspec
+docker compose exec web bundle exec rubocop
+docker compose exec web bundle exec brakeman -q -w2
+```
+
+Gems live in the named volume `bundle_cache:/usr/local/bundle` so `bundle install` is not repeated
+over the Windows bind mount.
+
+**Hostnames differ between Compose and CI.** In `compose.yaml` the database host is `db` and Redis is
+`redis`. In GitHub Actions, service containers publish to the runner, so both are `localhost`.
+Never copy one into the other.
+
+---
+
+## 6. Git workflow
+
+- `main` receives the foundation commits (phases 1–7) directly. That is the only exception.
+- From phase 8 on: one issue → one branch → one pull request. No direct commits to `main`.
+- Feature branches are **not merged locally**. They are pushed and merged through GitHub so the
+  Pull requests tab holds a real history.
+- Placeholder `<YOUR_GITHUB_USER>` is used for the GitHub account name until `gh` is authenticated,
+  then replaced repository-wide in one pass.
+
+---
+
+## 7. v1 staging strategy — read this before writing phases 3, 4 and 5
+
+Phase 8 requires five pull requests with real diffs. The topics it names are the same improvements
+that phases 3–5 would otherwise deliver up front. If they are finished early, the pull requests
+become empty theatre — and the pull requests are the actual portfolio.
+
+So five specific things are deliberately left in a **v1 (naive but working)** state on `main`, and
+fixed in phase 8. Everything else is built to its final form immediately.
+
+| # | Type | v1 state on `main` | Phase 8 PR adds |
+|---|---|---|---|
+| 1 | bug | `FeedFetcher` uses `SecureRandom.uuid` when an entry has no guid → duplicates on every fetch | fall back to `entry.link`, plus spec |
+| 2 | bug | `CsvImportJob` reads the whole file with `CSV.parse` | `CSV.foreach` streaming + batched `ImportJob` counter updates |
+| 3 | enhancement | feeds index does not show `last_error` | show the failure reason, plus request spec |
+| 4 | enhancement | articles index has no feed filter | feed filter select + scope |
+| 5 | refactor | HTTP fetching is inline inside `FeedFetcher` | extract `FeedHttpClient`, injectable |
+
+Rules:
+
+- v1 code must **work and be tested**. It is naive, not broken. The specs on `main` must be green.
+- `includes(:feed)` on the articles index is present from v1 — the bullet spec in phase 5 needs it.
+  PR #4 adds only the filter.
+- Do not write specs on `main` that assert the v1 shortcoming is correct behaviour. Leave the case
+  uncovered; the PR introduces the spec together with the fix.
+- After all five are merged, the tree satisfies every requirement in the phase 3, 4 and 5 prompts.
+
+Issue #6 (user authentication) is intentionally never implemented and stays open.
