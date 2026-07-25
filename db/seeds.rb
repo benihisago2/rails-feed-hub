@@ -1,9 +1,24 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
+# Seed data for development.
 #
-# Example:
+# Three real Japanese engineering blogs, so a freshly created database has
+# something meaningful to fetch instead of placeholder URLs that 404.
 #
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
+# Idempotent by design: the feed URL is the natural key, so running
+# `bin/rails db:seed` twice creates nothing twice and raises nothing. The block
+# form of find_or_create_by! only runs for a record that does not exist yet,
+# which also means a title edited by hand is not overwritten on the next run.
+
+seed_feeds = [
+  { title: "Cookpad Tech Life", url: "https://techlife.cookpad.com/feed" },
+  { title: "Cybozu Inside Out", url: "https://blog.cybozu.io/feed" },
+  { title: "DevelopersIO", url: "https://dev.classmethod.jp/feed/" }
+]
+
+seed_feeds.each do |attributes|
+  Feed.find_or_create_by!(url: attributes[:url]) do |feed|
+    feed.title = attributes[:title]
+    feed.active = true
+  end
+end
+
+puts "Seeded feeds: #{Feed.count}"

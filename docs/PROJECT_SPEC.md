@@ -171,6 +171,13 @@ Gems are baked into the image at `/usr/local/bundle`. **No volume is mounted ove
 empty named volume would shadow the installed gems on first boot, which is a classic and confusing
 failure. The trade-off is that changing the `Gemfile` requires `docker compose build web`.
 
+The test database must be created **without seeds**. `db:prepare` runs `db:seed` when it creates the
+database, and seeded feeds then leak into examples that assert on `Feed.active`. Use:
+
+```bash
+docker compose exec -e RAILS_ENV=test web bin/rails db:create db:schema:load
+```
+
 **Hostnames differ between Compose and CI.** In `compose.yaml` the database host is `db` and Redis is
 `redis`. In GitHub Actions, service containers publish to the runner, so both are `localhost`.
 Never copy one into the other.
