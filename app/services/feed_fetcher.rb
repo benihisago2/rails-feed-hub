@@ -143,10 +143,11 @@ class FeedFetcher
   # RSS 2.0 and RSS 1.0 (RDF) both land here. Their item elements differ enough
   # that the two identifier and date accessors are asked for by name.
   def rss_entry(item)
+    link = item.link.to_s.strip
     Entry.new(
-      guid: identifier(rss_identifier(item)),
+      guid: stable_identifier(rss_identifier(item), link),
       title: item.title.to_s.strip,
-      url: item.link.to_s.strip,
+      url: link,
       summary: item.description,
       published_at: item.respond_to?(:pubDate) ? item.pubDate : item.dc_date
     )
@@ -160,20 +161,28 @@ class FeedFetcher
   end
 
   def atom_entry(entry)
+    link = entry.link&.href.to_s.strip
     Entry.new(
-      guid: identifier(entry.id&.content),
+      guid: stable_identifier(entry.id&.content, link),
       title: entry.title&.content.to_s.strip,
-      url: entry.link&.href.to_s.strip,
+      url: link,
       summary: entry.summary&.content || entry.content&.content,
       published_at: (entry.published || entry.updated)&.content
     )
   end
 
-  # The identifier the feed publishes for an entry, or a generated one when the
-  # feed publishes none. The guid column is NOT NULL and carries the unique
-  # index, so every row has to arrive with a value.
-  def identifier(published_identifier)
-    published_identifier.presence || SecureRandom.uuid
+  # The identifier the feed publishes for an entry, falling back to the entry's
+  # own link when the feed omits a guid. The guid column is NOT NULL and carries
+  # the (feed_id, guid) unique index, so the identifier has to be stable across
+  # fetches: two fetches of the same guid-less entry must produce the same value,
+  # or the deduplication index never matches and the article is stored again on
+  # every run. The link is the entry's canonical URL, which satisfies that. The
+  # random UUID is only a last resort for an entry with neither a guid nor a
+  # link -- such an entry has no url either and is dropped in build_rows, so the
+  # UUID never actually reaches the database, but it keeps a malformed entry
+  # from breaking the whole fetch.
+  def stable_identifier(feed_identifier, entry_link)
+    feed_identifier.presence || entry_link.presence || SecureRandom.uuid
   end
 
   def store(entries)

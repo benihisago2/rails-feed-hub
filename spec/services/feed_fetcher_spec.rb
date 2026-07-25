@@ -48,6 +48,13 @@ RSpec.describe FeedFetcher do
         expect(feed.articles.pluck(:guid)).to include("urn:example:blog:duplicate-articles")
       end
 
+      it "prefers a published guid over the entry link" do
+        fetcher.call
+
+        article = feed.articles.find_by(url: "https://example.com/blog/duplicate-articles")
+        expect(article.guid).to eq("urn:example:blog:duplicate-articles")
+      end
+
       it "marks the feed as fetched" do
         fetcher.call
 
@@ -118,6 +125,23 @@ RSpec.describe FeedFetcher do
         described_class.new(feed).call
 
         expect(article.reload.created_at).to eq(first_seen_at)
+      end
+    end
+
+    context "when a feed omits the guid on its entries" do
+      before { stub_feed(body: feed_fixture("rss_without_guid.xml")) }
+
+      it "falls back to the entry link as the guid" do
+        fetcher.call
+
+        expect(feed.articles.pluck(:guid))
+          .to contain_exactly("https://example.com/noguid/first", "https://example.com/noguid/second")
+      end
+
+      it "does not store the same entries again on a second fetch" do
+        fetcher.call
+
+        expect { described_class.new(feed).call }.not_to change { feed.articles.count }.from(2)
       end
     end
 
