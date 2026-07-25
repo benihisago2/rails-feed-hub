@@ -1,4 +1,5 @@
 require "csv"
+require "tempfile"
 
 # Runs one bulk feed import in the background.
 #
@@ -7,14 +8,6 @@ require "csv"
 # belongs to FeedCsvImporter.
 class CsvImportJob < ApplicationJob
   queue_as :imports
-
-  # Excel writes a UTF-8 byte order mark at the start of every CSV it exports.
-  # Left in place it becomes part of the first header, which then reads
-  # "\uFEFFtitle" instead of "title". Every lookup of "title" would return nil,
-  # and a file that looks perfectly fine in a spreadsheet would import as N rows
-  # with no title at all. Written as an escape because the character itself is
-  # zero-width and would be invisible in this file.
-  BOM = "\uFEFF".freeze
 
   # The argument is the id, not the record: the payload in Redis stays small and
   # the worker reads the current state of the row rather than a copy of how it
@@ -39,7 +32,19 @@ class CsvImportJob < ApplicationJob
 
     import_job.update!(status: :running)
 
-    FeedCsvImporter.new(import_job, read_rows(import_job)).call
+    # Stream the attachment to a tempfile and read it a row at a time. The whole
+    # file is never resident as one String and the parsed rows are never
+    # materialised into one Array, so import memory no longer scales with the
+    # row count. CSV.foreach without a block returns a lazy enumerator, which is
+    # exactly the "any enumerable of rows" the importer already expects.
+    #
+    # "bom|utf-8" makes CSV detect and drop the UTF-8 byte order mark Excel
+    # writes at the start of a file. Left in place it becomes part of the first
+    # header ("﻿title"), and every lookup of "title" returns nil.
+    tempfile = download_to_tempfile(import_job)
+
+    rows = CSV.foreach(tempfile.path, headers: true, encoding: "bom|utf-8")
+    FeedCsvImporter.new(import_job, rows).call
   rescue StandardError => e
     Rails.logger.error("CsvImportJob failed import_job_id=#{import_job_id} error=#{e.class}: #{e.message}")
 
@@ -48,14 +53,20 @@ class CsvImportJob < ApplicationJob
     # stuck on "running" forever.
     import_job.update!(status: :failed) if import_job && !import_job.failed?
     raise
+  ensure
+    # Successful imports need cleanup just as much as failed ones. Tempfile#close!
+    # closes and unlinks the file in one operation.
+    tempfile&.close!
   end
 
   private
 
-  # Reads the attachment and hands back its rows.
-  def read_rows(import_job)
-    content = import_job.file.download.to_s.dup.force_encoding(Encoding::UTF_8)
-
-    CSV.parse(content.delete_prefix(BOM), headers: true)
+  # Streams the attachment down in chunks so the whole blob is never held in
+  # memory at once, and returns the tempfile it was written to.
+  def download_to_tempfile(import_job)
+    tempfile = Tempfile.new([ "feed_import", ".csv" ], binmode: true)
+    import_job.file.download { |chunk| tempfile.write(chunk) }
+    tempfile.flush
+    tempfile
   end
 end

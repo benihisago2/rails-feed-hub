@@ -155,7 +155,7 @@ incident, and adding a value later cannot silently reorder existing rows.
   The client is an English speaker.
 - **`docs/adr/*.md`: Japanese.** These are the most valuable files in the repository. Natural
   Japanese technical prose, `です・ます` style, never translationese.
-- Commit messages follow Conventional Commits (`feat:`, `fix:`, `refactor:`, `chore:`, `test:`, `docs:`).
+- Commit messages follow Conventional Commits (`feat:`, `fix:`, `refactor:`, `perf:`, `chore:`, `test:`, `docs:`).
 - No `default_scope` anywhere.
 - Do not swallow exceptions. Log and re-raise.
 - Service classes expose exactly one public method: `call`.
