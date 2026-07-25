@@ -69,7 +69,7 @@ group :development, :test do
   gem "rubocop-rspec", require: false
 
   # The test framework. Minitest is not used, so there is no test/ directory.
-  gem "rspec-rails", "~> 7.1"
+  gem "rspec-rails", "~> 8.0"
 
   # Test data factories [https://github.com/thoughtbot/factory_bot_rails]
   gem "factory_bot_rails", "~> 6.4"
