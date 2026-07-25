@@ -23,7 +23,16 @@
           <td><%= link_to feed.title, edit_feed_path(feed) %></td>
           <td class="muted"><%= feed.url %></td>
           <td><%= feed.active? ? "Yes" : "No" %></td>
-          <td><span class="status status-<%= feed.last_status %>"><%= feed.last_status %></span></td>
+          <td>
+            <span class="status status-<%= feed.last_status %>"><%= feed.last_status %></span>
+            <%# Show why the last fetch failed, right where the operator sees it is
+                red, so a 404 is distinguishable from a timeout without opening the
+                record. last_error is publisher-controlled text and is escaped by
+                <%=, never marked html_safe. %>
+            <% if feed.last_status == "failed" && feed.last_error.present? %>
+              <div class="last-error"><%= feed.last_error %></div>
+            <% end %>
+          </td>
           <td><%= timestamp(feed.last_fetched_at, placeholder: "Never") %></td>
           <%# button_to, not link_to: this enqueues a job, and a GET that changes
               state is a bug waiting for a crawler to find it. %>
