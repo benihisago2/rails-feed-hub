@@ -121,6 +121,23 @@ RSpec.describe FeedFetcher do
       end
     end
 
+    context "when a feed omits the guid on its entries" do
+      before { stub_feed(body: feed_fixture("rss_without_guid.xml")) }
+
+      it "falls back to the entry link as the guid" do
+        fetcher.call
+
+        expect(feed.articles.pluck(:guid))
+          .to contain_exactly("https://example.com/noguid/first", "https://example.com/noguid/second")
+      end
+
+      it "does not store the same entries again on a second fetch" do
+        fetcher.call
+
+        expect { described_class.new(feed).call }.not_to change { feed.articles.count }.from(2)
+      end
+    end
+
     context "when the request times out" do
       before { stub_request(:get, feed.url).to_timeout }
 
