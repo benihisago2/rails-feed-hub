@@ -15,6 +15,10 @@ class ArticlesController < ApplicationController
   def index
     respond_to do |format|
       format.html do
+        # The feeds that populate the filter select. Loaded only on the HTML
+        # branch -- the CSV format has no select box and must not pay for one.
+        @feeds = Feed.order(:title)
+
         # includes(:feed) is not a later optimisation. The table prints the feed
         # title on every row, so without it the page issues one query per
         # article and the cost grows with the page size; bullet raises on that
@@ -36,8 +40,17 @@ class ArticlesController < ApplicationController
   # The collection both formats answer about. It is deliberately unordered:
   # ordering belongs to the HTML branch, because the exporter batches with
   # find_each, which imposes primary-key order and discards any other.
+  #
+  # The feed filter is applied here rather than in the HTML branch so the CSV
+  # export inherits it for free: "export what I am looking at" stays true.
   def articles_scope
-    Article.all
+    return Article.all unless selected_feed
+
+    Article.where(feed: selected_feed)
+  end
+
+  def selected_feed
+    @selected_feed ||= Feed.find_by(id: params[:feed_id]) if params[:feed_id].present?
   end
 
   # send_data rather than ActionController::Live.

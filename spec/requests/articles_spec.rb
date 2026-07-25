@@ -28,6 +28,38 @@ RSpec.describe "Articles" do
 
       expect(response).to have_http_status(:ok)
     end
+
+    it "shows only the chosen feed's articles when filtered" do
+      rails_feed = create(:feed, title: "Rails Blog")
+      ruby_feed = create(:feed, title: "Ruby Weekly")
+      create(:article, feed: rails_feed, title: "A Rails post")
+      create(:article, feed: ruby_feed, title: "A Ruby post")
+
+      get articles_path(feed_id: rails_feed.id)
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("A Rails post")
+      expect(response.body).not_to include("A Ruby post")
+    end
+
+    it "shows every feed's articles when no feed is chosen" do
+      rails_feed = create(:feed, title: "Rails Blog")
+      ruby_feed = create(:feed, title: "Ruby Weekly")
+      create(:article, feed: rails_feed, title: "A Rails post")
+      create(:article, feed: ruby_feed, title: "A Ruby post")
+
+      get articles_path
+
+      expect(response.body).to include("A Rails post", "A Ruby post")
+    end
+
+    it "falls back to all articles when the chosen feed no longer exists" do
+      create(:article, title: "Still visible")
+
+      get articles_path(feed_id: Feed.maximum(:id).to_i + 1)
+
+      expect(response.body).to include("Still visible")
+    end
   end
 
   describe "GET /articles.csv" do
@@ -42,6 +74,26 @@ RSpec.describe "Articles" do
       expect(response.headers["Content-Disposition"]).to include("attachment")
       expect(response.body).to include("feed_title,title,url,published_at,tags")
       expect(response.body).to include("Rails Blog", "Ruby 3.4 released")
+    end
+
+    it "scopes the export to the same feed filter the page uses" do
+      rails_feed = create(:feed, title: "Rails Blog")
+      ruby_feed = create(:feed, title: "Ruby Weekly")
+      create(:article, feed: rails_feed, title: "A Rails post")
+      create(:article, feed: ruby_feed, title: "A Ruby post")
+
+      get articles_path(format: :csv, feed_id: rails_feed.id)
+
+      expect(response.body).to include("A Rails post")
+      expect(response.body).not_to include("A Ruby post")
+    end
+
+    it "exports all articles when the chosen feed no longer exists" do
+      create(:article, title: "Still exported")
+
+      get articles_path(format: :csv, feed_id: Feed.maximum(:id).to_i + 1)
+
+      expect(response.body).to include("Still exported")
     end
   end
 end
