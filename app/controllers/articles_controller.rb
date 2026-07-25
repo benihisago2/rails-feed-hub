@@ -44,9 +44,13 @@ class ArticlesController < ApplicationController
   # The feed filter is applied here rather than in the HTML branch so the CSV
   # export inherits it for free: "export what I am looking at" stays true.
   def articles_scope
-    scope = Article.all
-    scope = scope.where(feed_id: params[:feed_id]) if params[:feed_id].present?
-    scope
+    return Article.all unless selected_feed
+
+    Article.where(feed: selected_feed)
+  end
+
+  def selected_feed
+    @selected_feed ||= Feed.find_by(id: params[:feed_id]) if params[:feed_id].present?
   end
 
   # send_data rather than ActionController::Live.

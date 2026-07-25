@@ -52,6 +52,14 @@ RSpec.describe "Articles" do
 
       expect(response.body).to include("A Rails post", "A Ruby post")
     end
+
+    it "falls back to all articles when the chosen feed no longer exists" do
+      create(:article, title: "Still visible")
+
+      get articles_path(feed_id: Feed.maximum(:id).to_i + 1)
+
+      expect(response.body).to include("Still visible")
+    end
   end
 
   describe "GET /articles.csv" do
@@ -78,6 +86,14 @@ RSpec.describe "Articles" do
 
       expect(response.body).to include("A Rails post")
       expect(response.body).not_to include("A Ruby post")
+    end
+
+    it "exports all articles when the chosen feed no longer exists" do
+      create(:article, title: "Still exported")
+
+      get articles_path(format: :csv, feed_id: Feed.maximum(:id).to_i + 1)
+
+      expect(response.body).to include("Still exported")
     end
   end
 end
