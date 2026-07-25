@@ -57,7 +57,7 @@ class FeedFetcher
   # Returns a Result. Raises a FeedFetcher::Error subclass on any failure,
   # after recording the reason on the feed.
   def call
-    entries = parse(http_client.call(feed))
+    entries = parse(http_client.call(feed.url))
     created_count = store(entries)
     mark_success
 

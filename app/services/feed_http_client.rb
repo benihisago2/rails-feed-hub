@@ -28,13 +28,17 @@ class FeedHttpClient
     Net::ProtocolError
   ].freeze
 
+  # The error vocabulary intentionally remains under FeedFetcher. FetchFeedJob
+  # retries FeedFetcher::Error, so moving these classes during a transport-only
+  # refactor would silently change retry behavior.
+  #
   # Returns the response body as a UTF-8 string, or raises one of
   # FeedFetcher's error classes.
-  def call(feed)
-    uri = URI.parse(feed.url)
-    response = perform_request(uri, feed.url)
+  def call(url)
+    uri = URI.parse(url)
+    response = perform_request(uri, url)
 
-    raise FeedFetcher::HttpError.new(response.code.to_i, feed.url) unless response.is_a?(Net::HTTPSuccess)
+    raise FeedFetcher::HttpError.new(response.code.to_i, url) unless response.is_a?(Net::HTTPSuccess)
 
     # Net::HTTP returns the body as ASCII-8BIT. The parser works on characters,
     # and feeds are UTF-8 in practice; anything else fails in the parse step,

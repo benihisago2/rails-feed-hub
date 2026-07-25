@@ -22,6 +22,7 @@ RSpec.describe FeedFetcher do
 
         expect(result.created_count).to eq(3)
         expect(feed.articles.count).to eq(3)
+        expect(client).to have_received(:call).with(feed.url)
       end
     end
 
