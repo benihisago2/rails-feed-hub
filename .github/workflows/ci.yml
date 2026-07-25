@@ -61,7 +61,7 @@ jobs:
       # Loads db/schema.rb into the test database. db:test:prepare does not run
       # seeds, so seeded feeds cannot leak into examples that assert on scopes.
       - name: Prepare test database
-        run: bin/rails db:test:prepare
+        run: bundle exec rails db:test:prepare
 
       - name: Run RSpec
         run: bundle exec rspec
