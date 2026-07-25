@@ -145,7 +145,7 @@ class FeedFetcher
   def rss_entry(item)
     link = item.link.to_s.strip
     Entry.new(
-      guid: identifier(rss_identifier(item), link),
+      guid: stable_identifier(rss_identifier(item), link),
       title: item.title.to_s.strip,
       url: link,
       summary: item.description,
@@ -163,7 +163,7 @@ class FeedFetcher
   def atom_entry(entry)
     link = entry.link&.href.to_s.strip
     Entry.new(
-      guid: identifier(entry.id&.content, link),
+      guid: stable_identifier(entry.id&.content, link),
       title: entry.title&.content.to_s.strip,
       url: link,
       summary: entry.summary&.content || entry.content&.content,
@@ -181,8 +181,8 @@ class FeedFetcher
   # link -- such an entry has no url either and is dropped in build_rows, so the
   # UUID never actually reaches the database, but it keeps a malformed entry
   # from breaking the whole fetch.
-  def identifier(published_identifier, link)
-    published_identifier.presence || link.presence || SecureRandom.uuid
+  def stable_identifier(feed_identifier, entry_link)
+    feed_identifier.presence || entry_link.presence || SecureRandom.uuid
   end
 
   def store(entries)

@@ -48,6 +48,13 @@ RSpec.describe FeedFetcher do
         expect(feed.articles.pluck(:guid)).to include("urn:example:blog:duplicate-articles")
       end
 
+      it "prefers a published guid over the entry link" do
+        fetcher.call
+
+        article = feed.articles.find_by(url: "https://example.com/blog/duplicate-articles")
+        expect(article.guid).to eq("urn:example:blog:duplicate-articles")
+      end
+
       it "marks the feed as fetched" do
         fetcher.call
 
