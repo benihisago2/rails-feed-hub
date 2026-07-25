@@ -89,7 +89,7 @@ end
 group :test do
   # One-line matchers for Active Record validations and associations
   # [https://github.com/thoughtbot/shoulda-matchers]
-  gem "shoulda-matchers", "~> 6.4"
+  gem "shoulda-matchers", "~> 8.0"
 
   # Stubs outgoing HTTP. The suite fetches feeds constantly and must never
   # reach the real network. [https://github.com/bblimke/webmock]
