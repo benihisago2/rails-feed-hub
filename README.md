@@ -8,8 +8,9 @@ A small Rails application that collects RSS/Atom feeds on a schedule and support
 
 ```bash
 cp .env.example .env
-docker compose up
-docker compose exec web bin/rails db:setup
+docker compose up -d
+docker compose exec web bin/rails db:prepare
 ```
 
-The application is then available at <http://localhost:3000>.
+The application is then available at <http://localhost:3000>, and the Sidekiq
+dashboard at <http://localhost:3000/sidekiq> (development only).

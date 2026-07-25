@@ -43,3 +43,6 @@ Thumbs.db
 
 # Ignore CI/local caches.
 /.rubocop_cache/
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key

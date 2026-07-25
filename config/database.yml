@@ -1,0 +1,30 @@
+# Connections are configured entirely through environment variables so that the
+# same image runs unchanged in Docker Compose, in CI and in production.
+#
+# Development and test each read their own URL. Declaring an explicit `url:` key
+# for the test environment matters: without it Rails would merge DATABASE_URL
+# into whichever environment is current, and a test run would happily wipe the
+# development database.
+#
+# The fallbacks are the Docker Compose defaults from .env.example, so a missing
+# .env degrades to something sensible instead of an opaque adapter error.
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  # For details on connection pooling, see the Rails configuration guide
+  # https://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
+  url: <%= ENV.fetch("DATABASE_URL", "postgres://feedhub:feedhub@db:5432/feedhub_development") %>
+
+# Warning: the database defined as "test" is erased and re-generated between
+# runs. Never point it at the development or production database.
+test:
+  <<: *default
+  url: <%= ENV.fetch("TEST_DATABASE_URL", "postgres://feedhub:feedhub@db:5432/feedhub_test") %>
+
+production:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>

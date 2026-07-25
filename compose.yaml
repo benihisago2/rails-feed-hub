@@ -1,0 +1,70 @@
+name: rails-feed-hub
+
+# `web` and `worker` are the same image with a different command. The anchor
+# below keeps them from drifting apart, and the shared `image:` tag means the
+# image is built once and reused by both services.
+x-app: &app
+  build:
+    context: .
+  image: rails-feed-hub-dev
+  env_file:
+    - .env
+  volumes:
+    # Bind mount the project for live code reloading. Note that NOTHING is
+    # mounted over /usr/local/bundle: an empty named volume there would hide the
+    # gems installed into the image and break the first boot.
+    - .:/app
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+services:
+  web:
+    <<: *app
+    # No `command`: the image default already starts Rails bound to 0.0.0.0.
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+
+  worker:
+    <<: *app
+    command: bundle exec sidekiq
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-feedhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-feedhub}
+      POSTGRES_DB: ${POSTGRES_DB:-feedhub_development}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      # `web` and `worker` wait for this to pass before they start.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-feedhub} -d ${POSTGRES_DB:-feedhub_development}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres_data:
+  redis_data:
