@@ -51,6 +51,19 @@ Rails.application.configure do
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
 
+  # N+1 detection, raising rather than reporting.
+  #
+  # This is the difference between "no N+1 queries" being a convention nobody
+  # enforces and it being a property the suite checks: any request spec that
+  # renders a page loading an association per row fails outright, naming the
+  # model and the association. The wiring that opens and closes a bullet request
+  # around each example lives in spec/support/bullet.rb.
+  config.after_initialize do
+    Bullet.enable = true
+    Bullet.bullet_logger = true
+    Bullet.raise = true
+  end
+
   # config/application.rb selects Sidekiq for every environment. Override it here:
   # the test adapter records enqueued jobs in memory, which is what the ActiveJob
   # matchers read, and it keeps the suite from needing a running Redis.

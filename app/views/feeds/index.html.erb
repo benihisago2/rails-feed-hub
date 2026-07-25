@@ -1,0 +1,37 @@
+<% content_for :title, "Feeds" %>
+
+<div class="page-header">
+  <h1>Feeds</h1>
+  <%= link_to "Add feed", new_feed_path, class: "button" %>
+</div>
+
+<% if @feeds.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>URL</th>
+        <th>Active</th>
+        <th>Last status</th>
+        <th>Last fetched at</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @feeds.each do |feed| %>
+        <tr>
+          <td><%= link_to feed.title, edit_feed_path(feed) %></td>
+          <td class="muted"><%= feed.url %></td>
+          <td><%= feed.active? ? "Yes" : "No" %></td>
+          <td><span class="status status-<%= feed.last_status %>"><%= feed.last_status %></span></td>
+          <td><%= timestamp(feed.last_fetched_at, placeholder: "Never") %></td>
+          <%# button_to, not link_to: this enqueues a job, and a GET that changes
+              state is a bug waiting for a crawler to find it. %>
+          <td class="actions"><%= button_to "Fetch now", fetch_feed_path(feed), class: "button" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty">No feeds registered yet. Add one, or import a list from the Imports page.</p>
+<% end %>

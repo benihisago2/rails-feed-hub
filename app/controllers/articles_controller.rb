@@ -2,17 +2,31 @@
 class ArticlesController < ApplicationController
   CSV_CONTENT_TYPE = "text/csv; charset=utf-8".freeze
 
+  # Rows per page. Small enough that the page renders instantly on a table that
+  # grows without bound, large enough that paging through a day's harvest is not
+  # a chore.
+  PER_PAGE = 25
+
   # The export is a format of the index rather than a separate action or a
   # separate controller. It answers the same question about the same collection,
   # so it should be built from the same code: when the index grows a filter,
   # "export what I am looking at" comes for free instead of becoming a second
   # implementation that drifts out of step with the first.
   def index
-    @articles = articles_scope.includes(:feed).recent
-
     respond_to do |format|
-      # The template arrives in phase 5.
-      format.html { head :ok }
+      format.html do
+        # includes(:feed) is not a later optimisation. The table prints the feed
+        # title on every row, so without it the page issues one query per
+        # article and the cost grows with the page size; bullet raises on that
+        # in the test environment rather than letting it reach production.
+        #
+        # Pagination is applied after the ordering so the page boundaries follow
+        # published_at rather than whatever order the database felt like.
+        @articles = articles_scope.includes(:feed).recent.page(params[:page]).per(PER_PAGE)
+      end
+
+      # Deliberately not paginated: an export that stopped at 25 rows would be a
+      # trap. The exporter batches its own reads instead.
       format.csv { send_data(csv_body, csv_options) }
     end
   end

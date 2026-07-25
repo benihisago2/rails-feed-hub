@@ -1,0 +1,51 @@
+<% content_for :title, "Import #{@import_job.filename}" %>
+
+<div class="page-header">
+  <h1><%= @import_job.filename %></h1>
+  <%= link_to "Back to imports", import_jobs_path %>
+</div>
+
+<dl class="summary">
+  <dt>Status</dt>
+  <dd><span class="status status-<%= @import_job.status %>"><%= @import_job.status %></span></dd>
+
+  <dt>Rows read</dt>
+  <dd><%= @import_job.total_count %></dd>
+
+  <dt>Imported</dt>
+  <dd><%= @import_job.success_count %></dd>
+
+  <dt>Errors</dt>
+  <dd><%= @import_job.error_count %></dd>
+
+  <dt>Uploaded at</dt>
+  <dd><%= timestamp(@import_job.created_at) %></dd>
+</dl>
+
+<h2>Error report</h2>
+
+<%# Rows are rejected one at a time and the import carries on, so this table is
+    the whole point of the screen: it is what the operator fixes and re-uploads
+    from. An import that is still running simply has nothing here yet. %>
+<% if @import_job.error_report.present? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Line</th>
+        <th>URL</th>
+        <th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @import_job.error_report.each do |entry| %>
+        <tr>
+          <td><%= entry["line"] %></td>
+          <td class="muted"><%= entry["url"].presence || "-" %></td>
+          <td><%= entry["message"] %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty">No rows were rejected.</p>
+<% end %>

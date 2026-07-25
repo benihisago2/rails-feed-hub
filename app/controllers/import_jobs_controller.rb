@@ -1,17 +1,14 @@
 # Upload a CSV of feeds and watch the import that follows.
 class ImportJobsController < ApplicationController
+  # The upload form and the history live on the same page. An import is only
+  # ever interesting next to the ones before it -- "did the last one work" is
+  # the question an operator has before uploading another file.
   def index
     @import_jobs = ImportJob.order(created_at: :desc)
-
-    # The templates arrive in phase 5. Until then the actions answer with a
-    # status so the routes and the queries are exercised rather than guessed at.
-    head :ok
   end
 
   def show
     @import_job = ImportJob.find(params[:id])
-
-    head :ok
   end
 
   def create

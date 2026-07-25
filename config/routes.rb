@@ -18,6 +18,16 @@ Rails.application.routes.draw do
     mount Sidekiq::Web => "/sidekiq"
   end
 
+  # No destroy: removing a feed would take its articles with it, and nothing in
+  # the application needs that yet. Deactivating is the reversible alternative
+  # and is already an attribute of the form.
+  resources :feeds, only: %i[index new create edit update] do
+    # Fetching enqueues a job, so it is a POST rather than a link. A GET that
+    # changes state is one prefetching browser or one crawler away from firing
+    # itself, and nothing about the request tells the operator it happened.
+    post :fetch, on: :member
+  end
+
   # The CSV export is GET /articles.csv -- the format of the index, not a route
   # of its own, so it is filtered by whatever filters the index.
   resources :articles, only: %i[index]
@@ -26,6 +36,7 @@ Rails.application.routes.draw do
   # and editing history is not a thing an operator should be able to do.
   resources :import_jobs, only: %i[index show create]
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  # The feed list is the operator's home: everything else in the application is
+  # downstream of which feeds are registered and whether they last fetched.
+  root "feeds#index"
 end

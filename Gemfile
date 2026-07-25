@@ -34,6 +34,8 @@ gem "rss", "~> 0.3"
 # a *bundled* gem rather than a default gem, so it must be named in the Gemfile
 # to be requireable.
 gem "csv", "~> 3.3"
+# Pagination for the articles index [https://github.com/kaminari/kaminari]
+gem "kaminari", "~> 1.2"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
@@ -68,6 +70,12 @@ group :development, :test do
 
   # Test data factories [https://github.com/thoughtbot/factory_bot_rails]
   gem "factory_bot_rails", "~> 6.4"
+
+  # N+1 query detection [https://github.com/flyerhzm/bullet]. It is listed for
+  # the test group as well as development on purpose: bullet is configured to
+  # raise in the test environment, which is what turns "this page has an N+1"
+  # from a code review opinion into a failing example.
+  gem "bullet", "~> 8.0"
 end
 
 group :development do

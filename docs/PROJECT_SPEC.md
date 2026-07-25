@@ -77,7 +77,12 @@ debug (require: false)
 
 ```
 web-console
-bullet ~> 7.2
+```
+
+**:development, :test** (bullet must raise in the test environment, so it cannot be development-only)
+
+```
+bullet ~> 8.0   # 7.x hard-refuses Active Record 8.0 ("does not support ... yet")
 ```
 
 **:test**

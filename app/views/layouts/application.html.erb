@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "App" %></title>
+    <title><%= content_for(:title) || "FeedHub" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -17,11 +17,30 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%# The single stylesheet. There is no build step and no CSS framework:
+        this is an internal tool with four screens, and a toolchain would cost
+        more to keep alive than the styling is worth. %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   </head>
 
   <body>
-    <%= yield %>
+    <header class="site-header">
+      <nav>
+        <%= link_to "FeedHub", root_path, class: "brand" %>
+        <%= link_to "Feeds", feeds_path %>
+        <%= link_to "Articles", articles_path %>
+        <%= link_to "Imports", import_jobs_path %>
+      </nav>
+    </header>
+
+    <main>
+      <%# notice and alert both land here, so an action only has to choose which
+          key it sets rather than know anything about the layout. %>
+      <% flash.each do |type, message| %>
+        <p class="flash flash-<%= type %>"><%= message %></p>
+      <% end %>
+
+      <%= yield %>
+    </main>
   </body>
 </html>

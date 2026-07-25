@@ -1,0 +1,35 @@
+<% content_for :title, "Articles" %>
+
+<div class="page-header">
+  <h1>Articles</h1>
+  <%# The export is the CSV format of this very route, so it always answers
+      about the same collection the page is showing. %>
+  <%= link_to "Export as CSV", articles_path(format: :csv), class: "button" %>
+</div>
+
+<% if @articles.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>Published</th>
+        <th>Feed</th>
+        <th>Title</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @articles.each do |article| %>
+        <tr>
+          <td><%= timestamp(article.published_at, placeholder: "Unknown") %></td>
+          <%# article.feed is preloaded by the controller; this cell is the
+              reason includes(:feed) is there. %>
+          <td class="muted"><%= article.feed.title %></td>
+          <td><%= link_to article.title, article.url, rel: "noopener noreferrer" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%= paginate @articles %>
+<% else %>
+  <p class="empty">No articles yet. They appear once a feed has been fetched.</p>
+<% end %>

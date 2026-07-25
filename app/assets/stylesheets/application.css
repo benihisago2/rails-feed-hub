@@ -1,10 +1,98 @@
 /*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
+ * The whole stylesheet for FeedHub. This is an internal tool with four screens
+ * and no design requirement, so it stays one plain CSS file: no framework, no
+ * build step, nothing to keep up to date. Legibility over decoration.
  */
+:root {
+  --text: #1f2328;
+  --muted: #57606a;
+  --line: #d8dee4;
+  --surface: #f6f8fa;
+  --accent: #0969da;
+  --ok: #1a7f37;
+  --warn: #9a6700;
+  --error: #cf222e;
+}
+
+* { box-sizing: border-box; }
+a { color: var(--accent); }
+h1 { font-size: 1.4rem; }
+h2 { font-size: 1.1rem; margin-top: 2rem; }
+
+body {
+  margin: 0;
+  color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+.site-header { border-bottom: 1px solid var(--line); background: var(--surface); }
+.site-header .brand { font-weight: 700; color: var(--text); text-decoration: none; }
+
+.site-header nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: baseline;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+main { max-width: 60rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+.page-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+th { background: var(--surface); font-size: 0.85rem; }
+td.actions { width: 1%; white-space: nowrap; }
+
+th, td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.muted, .empty { color: var(--muted); }
+.empty { padding: 1.5rem 0; }
+
+/* The one place colour carries meaning rather than decoration: an operator
+   scanning the feed list is looking for the red row. */
+.status { font-weight: 600; }
+.status-ok, .status-completed { color: var(--ok); }
+.status-failed { color: var(--error); }
+.status-pending, .status-running { color: var(--warn); }
+
+.field { margin: 0.9rem 0; }
+.field label { display: block; margin-bottom: 0.2rem; font-weight: 600; }
+.field input[type="text"] { width: 100%; padding: 0.4rem; border: 1px solid var(--line); }
+.field-check label { display: inline; font-weight: 400; }
+.form-actions { display: flex; gap: 1rem; align-items: center; margin-top: 1.2rem; }
+.upload-form { border-bottom: 1px solid var(--line); padding-bottom: 1rem; }
+
+.button, input[type="submit"] {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.flash { padding: 0.6rem 0.8rem; border-left: 3px solid var(--accent); background: var(--surface); }
+.flash-alert { border-left-color: var(--error); }
+.errors { padding: 0.6rem 0.8rem; border-left: 3px solid var(--error); background: var(--surface); }
+.errors ul { margin: 0.4rem 0 0; }
+
+.summary { display: grid; grid-template-columns: 10rem 1fr; gap: 0.3rem 1rem; }
+.summary dt { color: var(--muted); }
+.summary dd { margin: 0; }
+.pagination { margin-top: 1rem; display: flex; gap: 0.6rem; }
+.pagination .current { font-weight: 700; }

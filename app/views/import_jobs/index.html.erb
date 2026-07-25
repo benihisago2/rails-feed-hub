@@ -1,0 +1,52 @@
+<% content_for :title, "Imports" %>
+
+<div class="page-header">
+  <h1>Imports</h1>
+</div>
+
+<%# scope: :import_job so the upload arrives as params[:import_job][:file],
+    which is what the controller permits. %>
+<%= form_with url: import_jobs_path, scope: :import_job, method: :post,
+              html: { multipart: true, class: "upload-form" } do |form| %>
+  <div class="field">
+    <%= form.label :file, "Feed CSV" %>
+    <%= form.file_field :file, accept: ".csv,text/csv" %>
+  </div>
+
+  <p class="muted">Columns: title, url, active. Feeds whose URL is already registered are skipped.</p>
+
+  <div class="form-actions">
+    <%= form.submit "Start import", class: "button" %>
+  </div>
+<% end %>
+
+<h2>History</h2>
+
+<% if @import_jobs.any? %>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Status</th>
+        <th>Rows</th>
+        <th>Imported</th>
+        <th>Errors</th>
+        <th>Uploaded at</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @import_jobs.each do |import_job| %>
+        <tr>
+          <td><%= link_to import_job.filename, import_job_path(import_job) %></td>
+          <td><span class="status status-<%= import_job.status %>"><%= import_job.status %></span></td>
+          <td><%= import_job.total_count %></td>
+          <td><%= import_job.success_count %></td>
+          <td><%= import_job.error_count %></td>
+          <td><%= timestamp(import_job.created_at) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p class="empty">Nothing has been imported yet.</p>
+<% end %>
