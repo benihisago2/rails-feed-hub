@@ -18,6 +18,14 @@ Rails.application.routes.draw do
     mount Sidekiq::Web => "/sidekiq"
   end
 
+  # The CSV export is GET /articles.csv -- the format of the index, not a route
+  # of its own, so it is filtered by whatever filters the index.
+  resources :articles, only: %i[index]
+
+  # No update or destroy: an import job is a record of something that happened,
+  # and editing history is not a thing an operator should be able to do.
+  resources :import_jobs, only: %i[index show create]
+
   # Defines the root path route ("/")
   # root "posts#index"
 end

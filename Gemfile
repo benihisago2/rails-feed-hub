@@ -30,6 +30,10 @@ gem "sidekiq-cron", "~> 1.12"
 # it here is what makes the standard library usable; it is not a third party
 # parser, and it pulls in nothing but rexml.
 gem "rss", "~> 0.3"
+# CSV reading and writing, from Ruby's own standard library. In Ruby 3.3 csv is
+# a *bundled* gem rather than a default gem, so it must be named in the Gemfile
+# to be requireable.
+gem "csv", "~> 3.3"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
