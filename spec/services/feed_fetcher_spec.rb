@@ -11,6 +11,20 @@ RSpec.describe FeedFetcher do
   end
 
   describe "#call" do
+    context "with an injected HTTP client" do
+      # The whole point of the extraction: the parse/store path runs against a
+      # canned body with no network stub at all, because the transport is a
+      # collaborator the fetcher is handed rather than something built inside it.
+      it "parses and stores the body the client returns without touching the network" do
+        client = instance_double(FeedHttpClient, call: feed_fixture("sample_rss.xml"))
+
+        result = described_class.new(feed, http_client: client).call
+
+        expect(result.created_count).to eq(3)
+        expect(feed.articles.count).to eq(3)
+      end
+    end
+
     context "with an RSS 2.0 document" do
       before { stub_feed(body: feed_fixture("sample_rss.xml")) }
 
