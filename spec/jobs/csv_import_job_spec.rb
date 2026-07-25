@@ -49,6 +49,17 @@ RSpec.describe CsvImportJob do
       )
     end
 
+    it "removes the streamed tempfile after a successful import" do
+      attach("title,url,active\nRails Blog,https://rubyonrails.org/feed.xml,true\n")
+      tempfile = Tempfile.new([ "feed_import_spec", ".csv" ], binmode: true)
+      allow(Tempfile).to receive(:new).and_return(tempfile)
+      allow(tempfile).to receive(:close!).and_call_original
+
+      described_class.perform_now(import_job.id)
+
+      expect(tempfile).to have_received(:close!)
+    end
+
     it "records partial failure without losing the good rows" do
       attach(<<~CSV)
         title,url,active

@@ -69,6 +69,7 @@ class FeedCsvImporter
       flush_progress if (total_count % FLUSH_EVERY).zero?
     end
 
+    flush_progress if total_count.positive? && (total_count % FLUSH_EVERY).nonzero?
     finish(:completed)
 
     Result.new(

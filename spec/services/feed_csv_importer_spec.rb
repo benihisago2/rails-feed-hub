@@ -46,6 +46,18 @@ RSpec.describe FeedCsvImporter do
         )
       end
 
+      it "flushes a final partial progress batch before completion" do
+        allow(import_job).to receive(:update!).and_call_original
+
+        import(csv_with("Rails Blog,https://rubyonrails.org/feed.xml,true"))
+
+        expect(import_job).to have_received(:update!).with(
+          total_count: 1,
+          success_count: 1,
+          error_count: 0
+        )
+      end
+
       it "copies the columns of a row onto the feed" do
         import(csv_with("Rails Blog,https://rubyonrails.org/feed.xml,false"))
 

@@ -48,14 +48,15 @@ class CsvImportJob < ApplicationJob
   rescue StandardError => e
     Rails.logger.error("CsvImportJob failed import_job_id=#{import_job_id} error=#{e.class}: #{e.message}")
 
-    # Remove the tempfile we streamed the upload into.
-    tempfile&.close!
-
     # A failure raised before the importer took over -- a download that did not
     # come back, a file that is not CSV at all -- would otherwise leave the row
     # stuck on "running" forever.
     import_job.update!(status: :failed) if import_job && !import_job.failed?
     raise
+  ensure
+    # Successful imports need cleanup just as much as failed ones. Tempfile#close!
+    # closes and unlinks the file in one operation.
+    tempfile&.close!
   end
 
   private
