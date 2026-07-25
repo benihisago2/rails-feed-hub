@@ -23,7 +23,7 @@ gem "sidekiq", "~> 7.3"
 # pin when moving to Sidekiq 8.
 gem "connection_pool", "~> 2.5"
 # Recurring schedules for Sidekiq [https://github.com/sidekiq-cron/sidekiq-cron]
-gem "sidekiq-cron", "~> 1.12"
+gem "sidekiq-cron", "~> 2.4"
 # RSS and Atom parsing, from Ruby's own standard library. It ships with Ruby as
 # a *bundled* gem rather than a default gem, so Bundler leaves it off the load
 # path unless the Gemfile names it and `require "rss"` raises LoadError. Listing
