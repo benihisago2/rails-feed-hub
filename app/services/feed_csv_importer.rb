@@ -35,6 +35,12 @@ class FeedCsvImporter
   # operator's editor shows them.
   HEADER_LINE_COUNT = 1
 
+  # How often the running counters are pushed to the ImportJob row while the
+  # import is still going. Now that rows are streamed, a large file can take a
+  # while, and an operator watching the detail page should see the numbers move
+  # rather than jump from zero to done. One UPDATE per batch, not per row.
+  FLUSH_EVERY = 100
+
   # Accepted spellings for the boolean column. An unrecognised value is a row
   # error rather than a silent cast: "activ" or "1 " should not quietly become
   # true, because the operator would never find out the feed is switched on.
@@ -58,7 +64,10 @@ class FeedCsvImporter
   # row, which is expected -- marks the ImportJob failed, and that exception is
   # re-raised so the job backend can retry it or park it where a human sees it.
   def call
-    rows.each_with_index { |row, index| import_row(row, line_number(index)) }
+    rows.each_with_index do |row, index|
+      import_row(row, line_number(index))
+      flush_progress if (total_count % FLUSH_EVERY).zero?
+    end
 
     finish(:completed)
 
@@ -147,9 +156,18 @@ class FeedCsvImporter
     @error_report << { "line" => line, "url" => url, "message" => message }
   end
 
-  # The counters are written once, at the end, rather than after every row. A
-  # thousand-row file would otherwise issue a thousand UPDATEs against the same
-  # row for numbers nobody reads until the import is over.
+  # Mid-run progress. Only the counts move here; the status stays whatever it
+  # was and the error_report is left for finish, since it is only read once the
+  # run is over.
+  def flush_progress
+    import_job.update!(
+      total_count: total_count,
+      success_count: success_count,
+      error_count: error_count
+    )
+  end
+
+  # The final write, including the status and the accumulated error_report.
   def finish(status)
     import_job.update!(
       status: status,

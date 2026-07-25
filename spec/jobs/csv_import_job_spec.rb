@@ -82,6 +82,35 @@ RSpec.describe CsvImportJob do
       expect(import_job.reload).to have_attributes(status: "completed", success_count: 1, error_count: 0)
     end
 
+    it "streams the file a row at a time rather than reading it all at once" do
+      row_count = 250
+      csv = CSV.generate do |out|
+        out << %w[title url active]
+        row_count.times { |i| out << [ "Feed #{i}", "https://example.com/feeds/#{i}.xml", "true" ] }
+      end
+      attach(csv)
+
+      received_rows = nil
+      allow(FeedCsvImporter).to receive(:new).and_wrap_original do |original, job, rows|
+        received_rows = rows
+        original.call(job, rows)
+      end
+
+      described_class.perform_now(import_job.id)
+
+      # CSV.foreach without a block hands back a lazy enumerator, so the rows are
+      # pulled one at a time as the importer iterates -- never materialised into
+      # one Array the way CSV.parse did.
+      expect(received_rows).to be_a(Enumerator)
+      expect(received_rows).not_to be_a(Array)
+      expect(import_job.reload).to have_attributes(
+        status: "completed",
+        total_count: row_count,
+        success_count: row_count,
+        error_count: 0
+      )
+    end
+
     it "does nothing when the import job no longer exists" do
       missing_id = ImportJob.maximum(:id).to_i + 1
 
