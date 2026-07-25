@@ -1,7 +1,5 @@
-require "net/http"
 require "rss"
 require "securerandom"
-require "uri"
 
 # Fetches a single feed over HTTP, parses the RSS or Atom document it returns
 # and stores the entries as articles.
@@ -43,37 +41,23 @@ class FeedFetcher
   # document was RSS or Atom.
   Entry = Data.define(:guid, :title, :url, :summary, :published_at)
 
-  # Explicit timeouts, in seconds. Without them Net::HTTP inherits defaults
-  # measured in minutes, and one unresponsive host would occupy a Sidekiq
-  # thread long enough to matter.
-  OPEN_TIMEOUT = 5
-  READ_TIMEOUT = 10
-
-  USER_AGENT = "FeedHub/1.0".freeze
-
-  # Failures raised before any response exists. Every one of them is a plain
-  # "the network did not work" condition and is worth retrying later.
-  CONNECTION_ERRORS = [
-    SocketError,
-    IOError,
-    SystemCallError,
-    Net::HTTPBadResponse,
-    Net::ProtocolError
-  ].freeze
-
   # Columns refreshed when an entry we already stored comes back changed.
   # created_at is deliberately absent: it records when we first saw the entry,
   # and an upsert must not rewrite that.
   UPDATABLE_COLUMNS = %i[title url summary published_at updated_at].freeze
 
-  def initialize(feed)
+  # The HTTP client is injected so the parse/store path can be exercised with a
+  # fake that returns a canned body, and defaults to the real transport so
+  # ordinary callers pass a feed and nothing else.
+  def initialize(feed, http_client: FeedHttpClient.new)
     @feed = feed
+    @http_client = http_client
   end
 
   # Returns a Result. Raises a FeedFetcher::Error subclass on any failure,
   # after recording the reason on the feed.
   def call
-    entries = parse(fetch_body)
+    entries = parse(http_client.call(feed.url))
     created_count = store(entries)
     mark_success
 
@@ -85,38 +69,7 @@ class FeedFetcher
 
   private
 
-  attr_reader :feed
-
-  def fetch_body
-    uri = URI.parse(feed.url)
-    response = perform_request(uri)
-
-    raise HttpError.new(response.code.to_i, feed.url) unless response.is_a?(Net::HTTPSuccess)
-
-    # Net::HTTP returns the body as ASCII-8BIT. The parser works on characters,
-    # and feeds are UTF-8 in practice; anything else fails in the parse step,
-    # where it is reported as a parse error rather than as a mystery.
-    response.body.to_s.dup.force_encoding(Encoding::UTF_8)
-  end
-
-  # The HTTP call lives here, inline, rather than behind a collaborator. There
-  # is exactly one caller today and the whole conversation is six lines long.
-  def perform_request(uri)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == "https"
-    http.open_timeout = OPEN_TIMEOUT
-    http.read_timeout = READ_TIMEOUT
-
-    request = Net::HTTP::Get.new(uri)
-    request["User-Agent"] = USER_AGENT
-    request["Accept"] = "application/rss+xml, application/atom+xml, application/xml;q=0.9, */*;q=0.8"
-
-    http.request(request)
-  rescue Timeout::Error => e
-    raise TimeoutError, "GET #{feed.url} timed out after open=#{OPEN_TIMEOUT}s read=#{READ_TIMEOUT}s (#{e.class})"
-  rescue *CONNECTION_ERRORS => e
-    raise ConnectionError, "GET #{feed.url} failed: #{e.class}: #{e.message}"
-  end
+  attr_reader :feed, :http_client
 
   def parse(body)
     # Validation is off, and unknown elements are ignored. Feeds in the wild
