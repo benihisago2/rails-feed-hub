@@ -1,0 +1,11 @@
+# Server-side Sidekiq settings. The CLI reads this file by default, so the
+# `worker` service in compose.yaml needs no arguments beyond `bundle exec sidekiq`.
+#
+# Queues are weighted rather than strictly ordered: a strict list would let a
+# long run of feed fetches starve a CSV import indefinitely. The weights say
+# "feeds first, most of the time", not "feeds only".
+:concurrency: 5
+:queues:
+  - [ feeds, 3 ]
+  - [ default, 2 ]
+  - [ imports, 1 ]

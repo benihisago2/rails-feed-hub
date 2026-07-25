@@ -1,0 +1,12 @@
+# Recurring schedule for sidekiq-cron.
+#
+# Kept out of the initializer so that changing when feeds are fetched is a data
+# change in one obvious file, not an edit to boot code.
+#
+# Loaded by config/initializers/sidekiq.rb, on the Sidekiq server only.
+
+schedule_feed_fetches:
+  cron: "0 * * * *"          # every hour, on the hour (UTC)
+  class: "ScheduleFeedFetchesJob"
+  queue: default
+  description: "Enqueue a FetchFeedJob for every active feed"

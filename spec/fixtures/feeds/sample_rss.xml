@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Example Engineering Blog</title>
+    <link>https://example.com/blog</link>
+    <description>Notes on databases, background jobs and the occasional outage.</description>
+    <language>en-us</language>
+    <generator>Example CMS 4.2</generator>
+    <lastBuildDate>Mon, 21 Jul 2025 09:00:00 +0000</lastBuildDate>
+
+    <item>
+      <title>What ON CONFLICT actually locks</title>
+      <link>https://example.com/blog/postgres-upsert</link>
+      <description>A walk through the row locks PostgreSQL takes during an upsert, and why a SELECT followed by an INSERT is not the same thing.</description>
+      <category>PostgreSQL</category>
+      <pubDate>Mon, 21 Jul 2025 09:00:00 +0000</pubDate>
+      <guid isPermaLink="true">https://example.com/blog/postgres-upsert</guid>
+    </item>
+
+    <item>
+      <title>Sizing a Sidekiq worker pool</title>
+      <link>https://example.com/blog/sidekiq-concurrency</link>
+      <description>Concurrency, the database connection pool, and the arithmetic that connects them.</description>
+      <category>Ruby</category>
+      <pubDate>Fri, 18 Jul 2025 16:45:00 +0000</pubDate>
+      <guid isPermaLink="true">https://example.com/blog/sidekiq-concurrency</guid>
+    </item>
+
+    <item>
+      <title>Post-mortem: the feed that never stopped growing</title>
+      <link>https://example.com/blog/duplicate-articles</link>
+      <description>One publisher omitted the guid element. We found out three million rows later.</description>
+      <category>Incidents</category>
+      <pubDate>Tue, 15 Jul 2025 07:30:00 +0000</pubDate>
+      <guid isPermaLink="false">urn:example:blog:duplicate-articles</guid>
+    </item>
+  </channel>
+</rss>

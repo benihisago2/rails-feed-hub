@@ -38,7 +38,7 @@ Gems arrive **phase by phase**, not all at once, so each phase has a meaningful 
 | Phase | Gems introduced |
 |---|---|
 | 1 | `pg`, `sidekiq`, `rspec-rails`, `factory_bot_rails`, `shoulda-matchers` |
-| 3 | `sidekiq-cron`, `webmock` |
+| 3 | `sidekiq-cron`, `rss`, `webmock` |
 | 5 | `kaminari`, `bullet` |
 | 6 | `simplecov`, `rubocop-rspec` (`rubocop-rails-omakase` and `brakeman` already ship with the skeleton) |
 
@@ -53,7 +53,12 @@ importmap-rails
 turbo-rails
 stimulus-rails
 sidekiq ~> 7.3
+connection_pool ~> 2.5   # pinned; 3.0 breaks the Sidekiq 7 scheduler
 sidekiq-cron ~> 1.12
+rss ~> 0.3               # Ruby's own RSS/Atom parser. Bundled, not default, in
+                         # Ruby 3.3 — Bundler keeps it off the load path unless
+                         # the Gemfile names it, so `require "rss"` would raise
+                         # LoadError. Not a third-party parser.
 kaminari ~> 1.2
 tzinfo-data (windows/jruby platforms only)
 bootsnap (require: false)

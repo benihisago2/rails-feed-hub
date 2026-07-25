@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Platform Updates</title>
+  <subtitle>Changes to the Example platform</subtitle>
+  <link href="https://example.com/updates/" rel="alternate" type="text/html"/>
+  <link href="https://example.com/updates/feed.atom" rel="self" type="application/atom+xml"/>
+  <id>urn:uuid:1f4d0a52-8b6c-4a7e-9c31-0d2b6f5a1c40</id>
+  <updated>2025-07-22T14:30:00Z</updated>
+  <author>
+    <name>Platform Team</name>
+    <email>platform@example.com</email>
+  </author>
+
+  <entry>
+    <title>Scheduled maintenance on 1 August</title>
+    <link href="https://example.com/updates/maintenance-2025-08-01" rel="alternate" type="text/html"/>
+    <id>urn:uuid:8c0b6a41-2f19-4d63-b0a8-77c9e4d21b55</id>
+    <updated>2025-07-22T14:30:00Z</updated>
+    <published>2025-07-22T14:00:00Z</published>
+    <summary type="text">The API will be read-only for thirty minutes starting at 02:00 UTC.</summary>
+    <author>
+      <name>Platform Team</name>
+    </author>
+  </entry>
+
+  <entry>
+    <title>Export endpoints now stream</title>
+    <link href="https://example.com/updates/streaming-exports" rel="alternate" type="text/html"/>
+    <id>urn:uuid:5a2e93b7-6d84-4f10-8e55-1b3c7d908f26</id>
+    <updated>2025-07-19T11:05:00Z</updated>
+    <published>2025-07-19T11:00:00Z</published>
+    <summary type="text">Large CSV exports are sent as they are generated instead of being buffered in memory.</summary>
+    <author>
+      <name>Platform Team</name>
+    </author>
+  </entry>
+</feed>

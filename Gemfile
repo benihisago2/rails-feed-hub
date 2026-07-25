@@ -22,6 +22,14 @@ gem "sidekiq", "~> 7.3"
 # Sidekiq's own constraint (>= 2.3.0) is too loose to prevent this. Remove the
 # pin when moving to Sidekiq 8.
 gem "connection_pool", "~> 2.5"
+# Recurring schedules for Sidekiq [https://github.com/sidekiq-cron/sidekiq-cron]
+gem "sidekiq-cron", "~> 1.12"
+# RSS and Atom parsing, from Ruby's own standard library. It ships with Ruby as
+# a *bundled* gem rather than a default gem, so Bundler leaves it off the load
+# path unless the Gemfile names it and `require "rss"` raises LoadError. Listing
+# it here is what makes the standard library usable; it is not a third party
+# parser, and it pulls in nothing but rexml.
+gem "rss", "~> 0.3"
 
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
@@ -67,4 +75,8 @@ group :test do
   # One-line matchers for Active Record validations and associations
   # [https://github.com/thoughtbot/shoulda-matchers]
   gem "shoulda-matchers", "~> 6.4"
+
+  # Stubs outgoing HTTP. The suite fetches feeds constantly and must never
+  # reach the real network. [https://github.com/bblimke/webmock]
+  gem "webmock", "~> 3.24"
 end

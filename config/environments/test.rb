@@ -50,4 +50,9 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # config/application.rb selects Sidekiq for every environment. Override it here:
+  # the test adapter records enqueued jobs in memory, which is what the ActiveJob
+  # matchers read, and it keeps the suite from needing a running Redis.
+  config.active_job.queue_adapter = :test
 end

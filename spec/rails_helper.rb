@@ -47,6 +47,14 @@ RSpec.configure do |config|
   # Remove this line if you're not using ActiveRecord or ActiveRecord fixtures
   config.use_transactional_fixtures = true
 
+  # rspec-rails infers a spec type from the directory a file lives in, but only
+  # for the directories it knows about, and spec/services is not one of them.
+  # Without a type those examples would run outside the transactional wrapper
+  # and leak rows into whatever runs next, so the type is set explicitly.
+  config.define_derived_metadata(file_path: %r{/spec/services/}) do |metadata|
+    metadata[:type] ||= :model
+  end
+
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
   # arbitrary gems may also be filtered via:
