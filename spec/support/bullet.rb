@@ -13,11 +13,11 @@
 RSpec.configure do |config|
   bullet_active = -> { defined?(Bullet) && Bullet.enable? }
 
-  config.before(:each) do
+  config.before do
     Bullet.start_request if bullet_active.call
   end
 
-  config.after(:each) do
+  config.after do
     next unless bullet_active.call
 
     begin

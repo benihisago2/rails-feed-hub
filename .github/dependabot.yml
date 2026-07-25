@@ -1,0 +1,15 @@
+# Weekly dependency checks. Bundler keeps the gem set current; github-actions
+# keeps the action versions pinned in the workflow current.
+version: 2
+updates:
+  - package-ecosystem: bundler
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10

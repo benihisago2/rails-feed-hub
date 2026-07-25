@@ -65,7 +65,7 @@ RSpec.describe CsvImportJob do
         success_count: 2,
         error_count: 1
       )
-      expect(Feed.pluck(:title)).to match_array([ "Good One", "Good Three" ])
+      expect(Feed.pluck(:title)).to contain_exactly("Good One", "Good Three")
     end
 
     it "strips the byte order mark a file exported from Excel starts with" do

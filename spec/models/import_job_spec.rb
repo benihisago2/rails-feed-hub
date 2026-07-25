@@ -16,8 +16,10 @@ RSpec.describe ImportJob do
   end
 
   describe "status" do
-    it do
-      is_expected.to define_enum_for(:status)
+    subject(:import_job) { described_class.new }
+
+    it "is a string-backed enum of pending, running, completed and failed" do
+      expect(import_job).to define_enum_for(:status)
         .with_values(pending: "pending", running: "running", completed: "completed", failed: "failed")
         .backed_by_column_of_type(:string)
     end

@@ -1,0 +1,106 @@
+name: CI
+
+# Run on every branch push and on pull requests. The three jobs below run in
+# parallel; each is well under a couple of minutes, so the whole workflow
+# finishes inside the 3-minute budget.
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Test (RSpec)
+    runs-on: ubuntu-latest
+
+    env:
+      RAILS_ENV: test
+      # GitHub Actions publishes service-container ports on the runner itself,
+      # so the host is ALWAYS localhost here -- never the Compose service names
+      # `db` / `redis`. Do not copy the compose.yaml hostnames into this file.
+      DATABASE_URL: postgres://feedhub:feedhub@localhost:5432/feedhub_test
+      TEST_DATABASE_URL: postgres://feedhub:feedhub@localhost:5432/feedhub_test
+      REDIS_URL: redis://localhost:6379/0
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: feedhub
+          POSTGRES_PASSWORD: feedhub
+          POSTGRES_DB: feedhub_test
+        ports:
+          - 5432:5432
+        # Wait for Postgres to accept connections before the steps run.
+        options: >-
+          --health-cmd "pg_isready -U feedhub -d feedhub_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          # Ruby version is read from .ruby-version (3.3.6).
+          ruby-version: .ruby-version
+          # Runs bundle install and caches the installed gems between runs.
+          bundler-cache: true
+
+      # Loads db/schema.rb into the test database. db:test:prepare does not run
+      # seeds, so seeded feeds cannot leak into examples that assert on scopes.
+      - name: Prepare test database
+        run: bin/rails db:test:prepare
+
+      - name: Run RSpec
+        run: bundle exec rspec
+
+      # Publish the SimpleCov HTML report so it can be inspected from the run.
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
+
+  lint:
+    name: Lint (RuboCop)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run RuboCop
+        run: bundle exec rubocop --parallel
+
+  security:
+    name: Security (Brakeman)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Run Brakeman
+        run: bundle exec brakeman -q -w2

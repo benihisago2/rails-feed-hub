@@ -24,8 +24,10 @@ RSpec.describe Feed do
   end
 
   describe "last_status" do
-    it do
-      is_expected.to define_enum_for(:last_status)
+    subject(:feed) { described_class.new }
+
+    it "is a string-backed enum of pending, ok and failed" do
+      expect(feed).to define_enum_for(:last_status)
         .with_values(pending: "pending", ok: "ok", failed: "failed")
         .backed_by_column_of_type(:string)
     end

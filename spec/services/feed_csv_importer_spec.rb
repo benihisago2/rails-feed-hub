@@ -97,9 +97,7 @@ RSpec.describe FeedCsvImporter do
         import(ten_rows_three_bad)
 
         expect(Feed.count).to eq(7)
-        expect(Feed.pluck(:title)).to match_array(
-          [ "Feed 1", "Feed 2", "Feed 4", "Feed 5", "Feed 7", "Feed 8", "Feed 10" ]
-        )
+        expect(Feed.pluck(:title)).to contain_exactly("Feed 1", "Feed 2", "Feed 4", "Feed 5", "Feed 7", "Feed 8", "Feed 10")
       end
 
       it "does not roll the good rows back when a later row fails" do
@@ -115,16 +113,20 @@ RSpec.describe FeedCsvImporter do
         expect(import_job.reload.error_report.map { |entry| entry["line"] }).to eq([ 4, 7, 10 ])
       end
 
-      it "records the url and the reason for each rejection" do
+      it "records the url each rejection came from" do
         import(ten_rows_three_bad)
-        entries = import_job.reload.error_report
+        urls = import_job.reload.error_report.map { |entry| entry["url"] }
 
-        expect(entries.first).to include("url" => "https://example.com/feeds/3.xml")
-        expect(entries.first["message"]).to include("Title can't be blank")
-        expect(entries.second).to include("url" => "not-a-url")
-        expect(entries.second["message"]).to include("Url is invalid")
-        expect(entries.third).to include("url" => nil)
-        expect(entries.third["message"]).to include("Url can't be blank")
+        expect(urls).to eq([ "https://example.com/feeds/3.xml", "not-a-url", nil ])
+      end
+
+      it "records the reason each rejection failed" do
+        import(ten_rows_three_bad)
+        messages = import_job.reload.error_report.map { |entry| entry["message"] }
+
+        expect(messages[0]).to include("Title can't be blank")
+        expect(messages[1]).to include("Url is invalid")
+        expect(messages[2]).to include("Url can't be blank")
       end
 
       it "finishes as completed, because rejected rows are data and not a failure" do

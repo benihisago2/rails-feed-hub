@@ -65,6 +65,9 @@ group :development, :test do
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
 
+  # RSpec-specific RuboCop cops, layered on top of omakase [https://github.com/rubocop/rubocop-rspec]
+  gem "rubocop-rspec", require: false
+
   # The test framework. Minitest is not used, so there is no test/ directory.
   gem "rspec-rails", "~> 7.1"
 
@@ -91,4 +94,9 @@ group :test do
   # Stubs outgoing HTTP. The suite fetches feeds constantly and must never
   # reach the real network. [https://github.com/bblimke/webmock]
   gem "webmock", "~> 3.24"
+
+  # Test coverage measurement, wired up at the top of spec/spec_helper.rb.
+  # require: false because SimpleCov is started explicitly there, not on load.
+  # [https://github.com/simplecov-ruby/simplecov]
+  gem "simplecov", "~> 0.22", require: false
 end
