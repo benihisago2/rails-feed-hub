@@ -23,6 +23,15 @@ RSpec.describe "Feeds" do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("returned HTTP 404")
     end
+
+    it "hides a stale failure reason after a successful fetch" do
+      create(:feed, title: "Recovered Feed", last_status: :ok,
+                    last_error: "FeedFetcher::TimeoutError: execution expired")
+
+      get feeds_path
+
+      expect(response.body).not_to include("execution expired")
+    end
   end
 
   describe "GET /feeds/new" do

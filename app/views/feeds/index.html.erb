@@ -29,7 +29,7 @@
                 red, so a 404 is distinguishable from a timeout without opening the
                 record. last_error is publisher-controlled text and is escaped by
                 <%=, never marked html_safe. %>
-            <% if feed.last_status == "failed" && feed.last_error.present? %>
+            <% if feed.failed? && feed.last_error.present? %>
               <div class="last-error"><%= feed.last_error %></div>
             <% end %>
           </td>
