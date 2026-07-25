@@ -66,6 +66,7 @@ th, td {
 .status-ok, .status-completed { color: var(--ok); }
 .status-failed { color: var(--error); }
 .status-pending, .status-running { color: var(--warn); }
+.last-error { margin-top: 0.25rem; font-size: 0.85em; color: var(--muted); }
 
 .field { margin: 0.9rem 0; }
 .field label { display: block; margin-bottom: 0.2rem; font-weight: 600; }
