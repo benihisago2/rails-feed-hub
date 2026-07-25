@@ -21,7 +21,7 @@ gem "sidekiq", "~> 7.3"
 # scheduler thread on boot with "wrong number of arguments (given 1, expected 0)".
 # Sidekiq's own constraint (>= 2.3.0) is too loose to prevent this. Remove the
 # pin when moving to Sidekiq 8.
-gem "connection_pool", "~> 2.5"
+gem "connection_pool", "~> 3.0"
 # Recurring schedules for Sidekiq [https://github.com/sidekiq-cron/sidekiq-cron]
 gem "sidekiq-cron", "~> 1.12"
 # RSS and Atom parsing, from Ruby's own standard library. It ships with Ruby as
