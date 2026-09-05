@@ -93,7 +93,7 @@ group :test do
 
   # Stubs outgoing HTTP. The suite fetches feeds constantly and must never
   # reach the real network. [https://github.com/bblimke/webmock]
-  gem "webmock", "~> 3.24"
+  gem "webmock", "~> 3.26"
 
   # Test coverage measurement, wired up at the top of spec/spec_helper.rb.
   # require: false because SimpleCov is started explicitly there, not on load.
