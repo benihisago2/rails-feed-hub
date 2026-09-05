@@ -78,7 +78,7 @@ group :development, :test do
   # the test group as well as development on purpose: bullet is configured to
   # raise in the test environment, which is what turns "this page has an N+1"
   # from a code review opinion into a failing example.
-  gem "bullet", "~> 8.0"
+  gem "bullet", "~> 8.2"
 end
 
 group :development do
