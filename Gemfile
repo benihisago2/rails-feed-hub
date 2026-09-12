@@ -98,5 +98,5 @@ group :test do
   # Test coverage measurement, wired up at the top of spec/spec_helper.rb.
   # require: false because SimpleCov is started explicitly there, not on load.
   # [https://github.com/simplecov-ruby/simplecov]
-  gem "simplecov", "~> 0.22", require: false
+  gem "simplecov", "~> 1.2", require: false
 end
